@@ -37,4 +37,3 @@ pnpm build
 ```sh
 pnpm lint
 ```
-# CRM-System
