@@ -5,8 +5,9 @@ import type { ITodoItem } from '@/types/todo.interface';
 type TasksProps = {
   allTasks: ITodoItem[] | undefined;
 };
-const props = defineProps<TasksProps>();
-const emits = defineEmits(['deleteTask', 'updateTaskStatus', 'editTask']);
+defineProps<TasksProps>();
+
+const emits = defineEmits(['taskUpdated']);
 </script>
 
 <template>
@@ -14,12 +15,10 @@ const emits = defineEmits(['deleteTask', 'updateTaskStatus', 'editTask']);
     <TransitionGroup class="tasksList" tag="div" name="fade">
       <TaskItem
         class="item"
-        v-for="task in props.allTasks"
+        v-for="task in allTasks"
         :key="task.id"
         :task-item="task"
-        @delete-task="emits('deleteTask', $event)"
-        @update-task-status="emits('updateTaskStatus', $event)"
-        @edit-task="emits('editTask', task, $event)"
+        @task-updated="emits('taskUpdated')"
       />
     </TransitionGroup>
   </div>

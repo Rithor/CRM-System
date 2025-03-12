@@ -1,31 +1,32 @@
 <script setup lang="ts">
-import type { ITodoInfo } from '@/types/todo.interface';
+import { TodoFilter, type ITodoInfo } from '@/types/todo.interface';
 
 type InfoProps = {
   taskInfo: ITodoInfo | undefined;
   activeCategory: string;
 };
-const props = defineProps<InfoProps>();
+defineProps<InfoProps>();
+
 const emits = defineEmits(['showAll', 'showInWork', 'showCompleted']);
 </script>
 
 <template>
   <nav class="container">
     <ul class="statusBar">
-      <li :class="{ statusBarActive: props.activeCategory === 'All' }" @click="emits('showAll')">
-        Все({{ props.taskInfo?.all }})
+      <li :class="{ statusBarActive: activeCategory === TodoFilter.ALL }" @click="emits('showAll')">
+        Все({{ taskInfo?.all }})
       </li>
       <li
-        :class="{ statusBarActive: props.activeCategory === 'inWork' }"
+        :class="{ statusBarActive: activeCategory === TodoFilter.IN_WORK }"
         @click="emits('showInWork')"
       >
-        В работе({{ props.taskInfo?.inWork }})
+        В работе({{ taskInfo?.inWork }})
       </li>
       <li
-        :class="{ statusBarActive: props.activeCategory === 'completed' }"
+        :class="{ statusBarActive: activeCategory === TodoFilter.COMPLETED }"
         @click="emits('showCompleted')"
       >
-        Сделано({{ props.taskInfo?.completed }})
+        Сделано({{ taskInfo?.completed }})
       </li>
     </ul>
   </nav>

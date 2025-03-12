@@ -1,83 +1,71 @@
 <script setup lang="ts">
 import type { ITodoItem } from '@/types/todo.interface';
-import { validateTaskTitle } from '@/utils/validation';
-import { ref, watch } from 'vue';
-import TaskTitleInput from './TaskTitleInput.vue';
+import { ref } from 'vue';
+import { deleteTodo, updateTodo } from '@/api/todoAPI_v1';
+import TaskCheckbox from './TaskCheckbox.vue';
+import TaskEditor from './TaskEditor.vue';
+import LoadingButton from './LoadingButton.vue';
 
 type TaskProps = {
   taskItem: ITodoItem;
 };
 const props = defineProps<TaskProps>();
-const emits = defineEmits(['deleteTask', 'updateTaskStatus', 'editTask']);
+
+const emits = defineEmits(['taskUpdated']);
 
 const isEditTask = ref(false);
-const addTaskInput = ref(props.taskItem.title);
-const validatorMessage = ref('');
+const isLoading = ref(false);
 
-const editTask = () => {
-  const validation = validateTaskTitle(addTaskInput.value);
-  if (validation) {
-    validatorMessage.value = validation;
-    return;
-  }
-  isEditTask.value = false;
-  if (addTaskInput.value !== props.taskItem.title) {
-    emits('editTask', addTaskInput);
+const handleUpdateTaskStatus = async () => {
+  const updatedTask = {
+    isDone: !props.taskItem.isDone,
+    title: props.taskItem.title,
+  };
+  try {
+    await updateTodo(updatedTask, props.taskItem.id);
+    emits('taskUpdated');
+  } catch (error) {
+    console.error(error);
   }
 };
-const handleCancel = () => {
-  isEditTask.value = false;
-  addTaskInput.value = props.taskItem.title;
-};
 
-watch(addTaskInput, () => {
-  validatorMessage.value = '';
-});
+const handleDeleteTask = async () => {
+  try {
+    isLoading.value = true;
+    await deleteTodo(props.taskItem.id);
+    emits('taskUpdated');
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <template>
   <div class="taskItem">
-    <div class="checkboxIconWrapper" @click="emits('updateTaskStatus', props.taskItem)">
-      <img
-        v-if="props.taskItem.isDone"
-        class="checkboxIcon"
-        src="../assets/icons/checkbox-check.svg"
-        alt="icon of a checked checkbox"
-      />
-      <img
-        v-else
-        class="checkboxIcon"
-        src="../assets/icons/checkbox-blank.svg"
-        alt="unchecked checkbox icon"
-      />
-    </div>
+    <TaskCheckbox :is-done="taskItem.isDone" @task-status-updated="handleUpdateTaskStatus" />
 
     <div v-if="!isEditTask" class="taskItemShow">
-      <p class="taskItemTitle">{{ addTaskInput }}</p>
+      <p class="taskItemTitle">{{ taskItem.title }}</p>
       <button class="btn taskBtn" @click="isEditTask = true">
         <img class="taskBtnIcon" src="../assets/icons/edit-5208207.svg" alt="edit button" />
       </button>
-      <button
-        class="btn taskBtn taskBtn-delete"
-        @click.once="emits('deleteTask', props.taskItem.id)"
+      <LoadingButton
+        class="taskBtn taskBtn-delete"
+        :loading="isLoading"
+        @click.once="handleDeleteTask"
       >
         <img class="taskBtnIcon" src="../assets/icons/trash-can-1539321.svg" alt="delete button" />
-      </button>
+      </LoadingButton>
     </div>
 
-    <div v-else class="taskItemShow taskItemShowEdition">
-      <TaskTitleInput
-        :isEdit="true"
-        v-model:add-task-input="addTaskInput"
-        v-model:validator-message="validatorMessage"
-      />
-      <button class="btn taskBtn" @click="editTask">
-        <img class="taskBtnIcon" src="../assets/icons/check-yes.svg" alt="edit button" />
-      </button>
-      <button class="btn taskBtn taskBtn-delete" @click.once="handleCancel">
-        <img class="taskBtnIcon" src="../assets/icons/cross.svg" alt="delete button" />
-      </button>
-    </div>
+    <TaskEditor
+      v-else
+      :taskItem
+      @task-title-updated="emits('taskUpdated')"
+      v-model:is-edit-task="isEditTask"
+    />
   </div>
 </template>
 
@@ -90,26 +78,6 @@ watch(addTaskInput, () => {
   border-radius: var(--border-radius);
   background-color: var(--color-background);
   box-shadow: 5px 5px 5px var(--color-background-mute);
-}
-
-.checkboxIconWrapper {
-  display: flex;
-  cursor: pointer;
-}
-
-.checkboxIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-  transition: transform 0.2s;
-
-  &:hover {
-    filter: drop-shadow(2px 2px 2px var(--color-border-hover));
-    transform: scale(1.05);
-  }
-
-  &:active {
-    transform: scale(0.9);
-  }
 }
 
 .taskItemShow {

@@ -1,13 +1,14 @@
-import type { ITodoItem } from '@/types/todo.interface';
+import type { ITodoInfo, ITodoItem, MetaResponse } from '@/types/todo.interface';
 
-export const BASE_URL = 'https://easydev.club/api/v1/todos';
+const BASE_URL = 'https://easydev.club/api/v1/todos';
 
-export async function getTodos(filter: string) {
+export async function getTodos(filter: string): Promise<MetaResponse<ITodoItem, ITodoInfo>> {
   try {
     const response = await fetch(`${BASE_URL}?filter=${filter}`);
     return await response.json();
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -18,6 +19,7 @@ export async function deleteTodo(id: number) {
     });
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -32,6 +34,7 @@ export async function updateTodo(updatedTask: Partial<ITodoItem>, taskItemId: nu
     });
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -50,5 +53,6 @@ export async function createTodo(todoTitle: string) {
     });
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }

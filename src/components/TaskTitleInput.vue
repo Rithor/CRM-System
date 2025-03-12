@@ -1,34 +1,35 @@
 <script setup lang="ts">
 defineProps({ isEdit: Boolean });
+
 const emits = defineEmits(['addTaskTitle']);
 
 const validatorMessage = defineModel('validatorMessage');
-const addTaskInput = defineModel('addTaskInput');
+const taskTitleInput = defineModel('taskTitleInput');
 </script>
 
 <template>
-  <div class="addTaskInputWrapper">
+  <div class="taskTitleInputWrapper">
     <transition name="fade">
       <span v-if="!!validatorMessage" class="validatorMessage">{{ validatorMessage }}</span>
     </transition>
     <input
       id=" addTask"
-      :class="isEdit ? 'taskEditionInput' : 'addTaskInput'"
+      :class="isEdit ? 'taskEditionInput' : 'taskTitleInput'"
       type="text"
       placeholder="Task To Be Done..."
-      v-model.trim="addTaskInput"
-      @keyup.enter="emits('addTaskTitle', addTaskInput)"
+      v-model.trim="taskTitleInput"
+      @keyup.enter="emits('addTaskTitle', taskTitleInput)"
     />
   </div>
 </template>
 
 <style scoped>
-.addTaskInputWrapper {
+.taskTitleInputWrapper {
   position: relative;
   flex: 1;
 }
 
-.addTaskInput {
+.taskTitleInput {
   width: 100%;
   height: 100%;
   border: none;

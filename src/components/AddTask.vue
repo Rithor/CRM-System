@@ -3,24 +3,30 @@ import { ref, watch } from 'vue';
 import { validateTaskTitle } from '@/utils/validation';
 import TaskTitleInput from './TaskTitleInput.vue';
 import { createTodo } from '@/api/todoAPI_v1';
+import LoadingButton from './LoadingButton.vue';
 
 const emits = defineEmits(['newTaskAdded']);
 
 const addTaskInput = ref('');
-const addBtnOff = ref(false);
+const isLoading = ref(false);
 const validatorMessage = ref('');
 
 const addNewTask = async () => {
-  const validation = validateTaskTitle(addTaskInput.value);
-  if (validation) {
-    validatorMessage.value = validation;
+  const notValidMsg = validateTaskTitle(addTaskInput.value);
+  if (notValidMsg) {
+    validatorMessage.value = notValidMsg;
     return;
   }
-  addBtnOff.value = true;
-  await createTodo(addTaskInput.value);
-  addTaskInput.value = '';
-  emits('newTaskAdded');
-  addBtnOff.value = false;
+  isLoading.value = true;
+  try {
+    await createTodo(addTaskInput.value);
+    addTaskInput.value = '';
+    emits('newTaskAdded');
+  } catch (error) {
+    console.error(error);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 watch(addTaskInput, () => {
@@ -31,11 +37,11 @@ watch(addTaskInput, () => {
 <template>
   <div class="addTaskContainer">
     <TaskTitleInput
-      v-model:add-task-input="addTaskInput"
+      v-model:task-title-input="addTaskInput"
       v-model:validator-message="validatorMessage"
       @add-task-title="addNewTask()"
     />
-    <button class="btn addBtn" @click="addNewTask()" :disabled="addBtnOff">Add</button>
+    <LoadingButton class="addBtn" :loading="isLoading" @click="addNewTask()">Add</LoadingButton>
   </div>
 </template>
 
