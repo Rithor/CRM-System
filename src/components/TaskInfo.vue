@@ -1,32 +1,31 @@
 <script setup lang="ts">
-import { TodoFilter, type ITodoInfo } from '@/types/todo.interface';
+import { TodoFilter, type TodoInfo } from '@/types/todos';
 
 type InfoProps = {
-  taskInfo: ITodoInfo | undefined;
-  activeCategory: string;
+  taskInfo: TodoInfo;
+  activeCategory: TodoFilter;
 };
 defineProps<InfoProps>();
 
-const emits = defineEmits(['showAll', 'showInWork', 'showCompleted']);
+const emits = defineEmits(['filterChanged']);
+
+const filterLabel: Record<TodoFilter, string> = {
+  all: 'Все',
+  inWork: 'В работе',
+  completed: 'Сделано',
+};
 </script>
 
 <template>
   <nav class="container">
     <ul class="statusBar">
-      <li :class="{ statusBarActive: activeCategory === TodoFilter.ALL }" @click="emits('showAll')">
-        Все({{ taskInfo?.all }})
-      </li>
       <li
-        :class="{ statusBarActive: activeCategory === TodoFilter.IN_WORK }"
-        @click="emits('showInWork')"
+        v-for="(label, filter) in filterLabel"
+        :key="filter"
+        :class="{ statusBarActive: activeCategory === filter }"
+        @click="emits('filterChanged', filter)"
       >
-        В работе({{ taskInfo?.inWork }})
-      </li>
-      <li
-        :class="{ statusBarActive: activeCategory === TodoFilter.COMPLETED }"
-        @click="emits('showCompleted')"
-      >
-        Сделано({{ taskInfo?.completed }})
+        {{ label }}({{ taskInfo[filter] }})
       </li>
     </ul>
   </nav>
@@ -35,7 +34,7 @@ const emits = defineEmits(['showAll', 'showInWork', 'showCompleted']);
 <style scoped>
 .statusBar {
   display: flex;
-  gap: 1.4rem;
+  gap: 1rem;
   justify-content: center;
   padding-bottom: 0;
 }
@@ -45,6 +44,7 @@ const emits = defineEmits(['showAll', 'showInWork', 'showCompleted']);
   font-weight: 700;
   transition: all 0.2s;
   cursor: pointer;
+  white-space: nowrap;
 
   &:hover {
     color: var(--color-primary);

@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { Todo } from '@/types/todos';
 import TaskItem from './TaskItem.vue';
-import type { ITodoItem } from '@/types/todo.interface';
 
 type TasksProps = {
-  allTasks: ITodoItem[] | undefined;
+  tasks: Todo[];
 };
 defineProps<TasksProps>();
 
@@ -15,7 +15,7 @@ const emits = defineEmits(['taskUpdated']);
     <TransitionGroup class="tasksList" tag="div" name="fade">
       <TaskItem
         class="item"
-        v-for="task in allTasks"
+        v-for="task in tasks"
         :key="task.id"
         :task-item="task"
         @task-updated="emits('taskUpdated')"

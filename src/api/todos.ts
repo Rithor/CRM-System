@@ -1,10 +1,10 @@
-import type { ITodoInfo, ITodoItem, MetaResponse } from '@/types/todo.interface';
+import type { TodoInfo, Todo, MetaResponse, TodoFilter, TodoRequest } from '@/types/todos';
 
-const BASE_URL = 'https://easydev.club/api/v1/todos';
+const BASE_URL = 'https://easydev.club/api/v1';
 
-export async function getTodos(filter: string): Promise<MetaResponse<ITodoItem, ITodoInfo>> {
+export async function getTodos(filter: TodoFilter): Promise<MetaResponse<Todo, TodoInfo>> {
   try {
-    const response = await fetch(`${BASE_URL}?filter=${filter}`);
+    const response = await fetch(`${BASE_URL}/todos?filter=${filter}`);
     return await response.json();
   } catch (error) {
     console.error(error);
@@ -14,7 +14,7 @@ export async function getTodos(filter: string): Promise<MetaResponse<ITodoItem, 
 
 export async function deleteTodo(id: number) {
   try {
-    await fetch(`${BASE_URL}/${id}`, {
+    await fetch(`${BASE_URL}/todos/${id}`, {
       method: 'DELETE',
     });
   } catch (error) {
@@ -23,9 +23,9 @@ export async function deleteTodo(id: number) {
   }
 }
 
-export async function updateTodo(updatedTask: Partial<ITodoItem>, taskItemId: number) {
+export async function updateTodo(taskItemId: number, updatedTask: TodoRequest) {
   try {
-    await fetch(`${BASE_URL}/${taskItemId}`, {
+    await fetch(`${BASE_URL}/todos/${taskItemId}`, {
       method: 'PUT',
       body: JSON.stringify(updatedTask),
       headers: {
@@ -44,7 +44,7 @@ export async function createTodo(todoTitle: string) {
       title: todoTitle,
       isDone: false,
     };
-    await fetch(BASE_URL, {
+    await fetch(`${BASE_URL}/todos`, {
       method: 'POST',
       body: JSON.stringify(newTask),
       headers: {

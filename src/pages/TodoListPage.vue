@@ -1,31 +1,38 @@
 <script setup lang="ts">
-import { getTodos } from '@/api/todoAPI_v1';
+import { onMounted, ref } from 'vue';
+import { getTodos } from '@/api/todos';
+import { TodoFilter, type TodoInfo, type Todo } from '@/types/todos';
 import AddTask from '@/components/AddTask.vue';
 import TaskInfo from '@/components/TaskInfo.vue';
 import TasksList from '@/components/TasksList.vue';
-import { TodoFilter, type ITodoInfo, type ITodoItem } from '@/types/todo.interface';
-import { onMounted, ref, watch } from 'vue';
 
-const allTasks = ref<ITodoItem[]>();
-const allTasksInfo = ref<ITodoInfo>();
+const defaultTasksInfo: TodoInfo = {
+  all: 0,
+  completed: 0,
+  inWork: 0,
+};
+
+const tasks = ref<Todo[]>([]);
+const tasksInfo = ref<TodoInfo>(defaultTasksInfo);
 const activeCategory = ref(TodoFilter.ALL);
 
 const fetchTasks = async () => {
   try {
     const data = await getTodos(activeCategory.value);
-    allTasksInfo.value = data.info;
-    allTasks.value = data.data;
+    tasksInfo.value = data.info ?? defaultTasksInfo;
+    tasks.value = data.data;
   } catch (error) {
     console.error(error);
   }
 };
 
-watch(activeCategory, async () => {
-  await fetchTasks();
-});
+const handleFilterChanged = async (filter: TodoFilter) => {
+  activeCategory.value = filter;
+  await fetchTasks(); // вопрос: надо-ли тут ставить await? и когда оборачивать await в try / catch
+};
 
-onMounted(async () => {
-  await fetchTasks();
+onMounted(() => {
+  fetchTasks();
 });
 </script>
 
@@ -36,15 +43,13 @@ onMounted(async () => {
         <AddTask @new-task-added="fetchTasks" />
 
         <TaskInfo
-          :active-category
-          :task-info="allTasksInfo"
-          @show-all="activeCategory = TodoFilter.ALL"
-          @show-in-work="activeCategory = TodoFilter.IN_WORK"
-          @show-completed="activeCategory = TodoFilter.COMPLETED"
+          :active-category="activeCategory"
+          :task-info="tasksInfo"
+          @filter-changed="handleFilterChanged"
         />
       </div>
 
-      <TasksList :allTasks @task-updated="fetchTasks" />
+      <TasksList :tasks="tasks" @task-updated="fetchTasks" />
     </section>
   </main>
 </template>
@@ -68,24 +73,5 @@ onMounted(async () => {
 .container {
   position: relative;
   padding: 1rem;
-}
-
-.btn {
-  font-size: 1rem;
-  background-color: var(--color-primary);
-  color: var(--vt-c-white);
-  border-radius: var(--border-radius);
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s;
-
-  &:hover {
-    filter: brightness(0.9);
-    box-shadow: 2px 2px 5px var(--color-border-hover);
-  }
-
-  &:active {
-    transform: scale(0.9);
-  }
 }
 </style>

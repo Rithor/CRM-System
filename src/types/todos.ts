@@ -1,14 +1,19 @@
-export interface ITodoItem {
+export interface Todo {
   id: number;
   title: string;
   created: string; // ISO date string
   isDone: boolean;
 }
 
-export interface ITodoInfo {
+export interface TodoInfo {
   all: number;
   completed: number;
   inWork: number;
+}
+
+export interface TodoRequest {
+  title?: string;
+  isDone?: boolean;
 }
 
 export interface MetaResponse<T, N> {
@@ -20,7 +25,7 @@ export interface MetaResponse<T, N> {
 }
 
 export enum TodoFilter {
-  ALL = 'All',
+  ALL = 'all',
   COMPLETED = 'completed',
   IN_WORK = 'inWork',
 }

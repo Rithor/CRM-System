@@ -1,20 +1,25 @@
 <script setup lang="ts">
-import type { ITodoItem } from '@/types/todo.interface';
 import { ref } from 'vue';
-import { deleteTodo, updateTodo } from '@/api/todoAPI_v1';
-import TaskCheckbox from './TaskCheckbox.vue';
-import TaskEditor from './TaskEditor.vue';
-import LoadingButton from './LoadingButton.vue';
+import { deleteTodo, updateTodo } from '@/api/todos';
+import type { Todo } from '@/types/todos';
+import TaskForm from './TaskForm.vue';
+import BaseCheckbox from '@/UI/BaseCheckbox.vue';
+import BaseButton from '@/UI/BaseButton.vue';
+import trashIcon from '@/assets/icons/trash-can-1539321.svg';
+import editIcon from '@/assets/icons/edit-5208207.svg';
+import confirmIcon from '@/assets/icons/check-yes_v2.svg';
+import cancelIcon from '@/assets/icons/cross.svg';
 
 type TaskProps = {
-  taskItem: ITodoItem;
+  taskItem: Todo;
 };
 const props = defineProps<TaskProps>();
 
 const emits = defineEmits(['taskUpdated']);
 
-const isEditTask = ref(false);
+const isEdit = ref(false);
 const isLoading = ref(false);
+const editorInput = ref(props.taskItem.title);
 
 const handleUpdateTaskStatus = async () => {
   const updatedTask = {
@@ -22,7 +27,7 @@ const handleUpdateTaskStatus = async () => {
     title: props.taskItem.title,
   };
   try {
-    await updateTodo(updatedTask, props.taskItem.id);
+    await updateTodo(props.taskItem.id, updatedTask);
     emits('taskUpdated');
   } catch (error) {
     console.error(error);
@@ -40,32 +45,58 @@ const handleDeleteTask = async () => {
     isLoading.value = false;
   }
 };
+
+const handleEditTask = async () => {
+  if (editorInput.value !== props.taskItem.title) {
+    const updatedTask = {
+      isDone: props.taskItem.isDone,
+      title: editorInput.value,
+    };
+    try {
+      isLoading.value = true;
+      await updateTodo(props.taskItem.id, updatedTask);
+      emits('taskUpdated');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  isEdit.value = false;
+};
+
+const handleCancel = () => {
+  isEdit.value = false;
+  editorInput.value = props.taskItem.title;
+};
 </script>
 
 <template>
   <div class="taskItem">
-    <TaskCheckbox :is-done="taskItem.isDone" @task-status-updated="handleUpdateTaskStatus" />
+    <BaseCheckbox :is-done="taskItem.isDone" @task-status-updated="handleUpdateTaskStatus" />
 
-    <div v-if="!isEditTask" class="taskItemShow">
+    <!-- Show the default Todo's UI... -->
+    <div v-if="!isEdit" class="taskItemShow">
       <p class="taskItemTitle">{{ taskItem.title }}</p>
-      <button class="btn taskBtn" @click="isEditTask = true">
-        <img class="taskBtnIcon" src="../assets/icons/edit-5208207.svg" alt="edit button" />
-      </button>
-      <LoadingButton
-        class="taskBtn taskBtn-delete"
+
+      <BaseButton size="md" :icon="editIcon" @click="isEdit = true" />
+      <BaseButton
+        type="danger"
+        size="md"
+        :icon="trashIcon"
         :loading="isLoading"
         @click.once="handleDeleteTask"
-      >
-        <img class="taskBtnIcon" src="../assets/icons/trash-can-1539321.svg" alt="delete button" />
-      </LoadingButton>
+      />
     </div>
 
-    <TaskEditor
-      v-else
-      :taskItem
-      @task-title-updated="emits('taskUpdated')"
-      v-model:is-edit-task="isEditTask"
-    />
+    <!-- OR show Todo editing UI -->
+    <div v-else class="taskItemShow">
+      <TaskForm :isEdit="true" v-model:form-input="editorInput" @add-task-title="handleEditTask">
+        <BaseButton size="md" :icon="confirmIcon" :loading="isLoading" />
+      </TaskForm>
+
+      <BaseButton type="danger" size="md" :icon="cancelIcon" @click.once="handleCancel" />
+    </div>
   </div>
 </template>
 
@@ -86,27 +117,22 @@ const handleDeleteTask = async () => {
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .taskItemTitle {
   flex: 1;
+  width: 100%;
   line-height: 150%;
 }
 
-.taskBtn {
-  width: 3rem;
-  height: 3rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
 }
 
-.taskBtn-delete {
-  background-color: var(--color-second);
-}
-
-.taskBtnIcon {
-  width: 1.25rem;
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>
